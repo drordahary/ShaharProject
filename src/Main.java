@@ -10,12 +10,17 @@ public class Main {
         addItem();
         addItem();
         removeItem();
+        editItem();
         items.forEach(System.out::println);
     }
 
     private static void addItem() {
         Item item = getItemInput();
         if (item == null) return;
+        if (itemExists(item.getId())) {
+            System.out.println("Item ID already exists");
+            return;
+        }
         items.add(item);
     }
 
@@ -29,16 +34,23 @@ public class Main {
         items.removeIf(item -> item.getId() == id);
     }
 
+    private static void editItem() {
+        Item item = getItemInput();
+        if (item == null) return;
+        if (!itemExists(item.getId())) {
+            System.out.println("Item does not exists");
+            return;
+        }
+        items.removeIf(it -> it.getId() == item.getId());
+        items.add(item);
+    }
+
     private static boolean itemExists(int itemId) {
         return items.stream().anyMatch(item -> item.getId() == itemId);
     }
 
     private static Item getItemInput() {
         int id = getInputId();
-        if (itemExists(id)) {
-            System.out.println("Item ID already exists");
-            return null;
-        }
         if (id == -1) {
             sc.nextLine();
             return null;
