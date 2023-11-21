@@ -8,11 +8,14 @@ public class Main {
 
     public static void main(String[] args) {
         addItem();
-        addItem();
-        addItem();
         removeItem();
         editItem();
         items.forEach(System.out::println);
+
+        addUnitBudget();
+        removeUnitBudget();
+        editUnitBudget();
+        unitsBudget.forEach(System.out::println);
     }
 
     private static void addItem() {
@@ -27,11 +30,14 @@ public class Main {
 
     private static void removeItem() {
         int id = getInputId();
-        if (!itemExists(id)) {
+        if (!itemExists(id) && id != -1) {
             System.out.println("Item does not exists");
             return;
         }
-        if (id == -1) return;
+        if (id == -1) {
+            sc.nextLine();
+            return;
+        }
         items.removeIf(item -> item.getId() == id);
     }
 
@@ -78,7 +84,7 @@ public class Main {
     }
 
     private static int getInputId() {
-        System.out.print("Enter item ID: ");
+        System.out.print("Enter ID: ");
         int id = 0;
         if (sc.hasNextInt()) {
             id = sc.nextInt();
@@ -124,5 +130,86 @@ public class Main {
         }
         sc.nextLine();
         return amount;
+    }
+
+    private static UnitBudget getUnitBudgetInput() {
+        int id = getInputId();
+        if (id == -1) {
+            sc.nextLine();
+            return null;
+        }
+
+        String unitName = getInputUnitName();
+        if (unitName.isEmpty()) {
+            return null;
+        }
+
+        float budget = getInputBudget();
+        if (budget == -1) {
+            sc.nextLine();
+            return null;
+        }
+
+        return new UnitBudget(id, unitName, budget);
+    }
+
+    private static String getInputUnitName() {
+        System.out.print("Enter unit name: ");
+        String unitName = sc.nextLine();
+        if (unitName.isEmpty()) {
+            System.out.println("Unit name input empty");
+            return "";
+        }
+        return unitName;
+    }
+
+    private static float getInputBudget() {
+        System.out.print("Enter unit budget: ");
+        float price = 0;
+        if (sc.hasNextFloat()) price = sc.nextFloat();
+        if (price <= 0) {
+            System.out.println("Invalid budget");
+            return -1;
+        }
+        sc.nextLine();
+        return price;
+    }
+
+    private static void addUnitBudget() {
+        UnitBudget unitBudget = getUnitBudgetInput();
+        if (unitBudget == null) return;
+        if (unitBudgetExists(unitBudget.getId())) {
+            System.out.println("Unit ID already exists");
+            return;
+        }
+        unitsBudget.add(unitBudget);
+    }
+
+    private static void removeUnitBudget() {
+        int id = getInputId();
+        if (!unitBudgetExists(id) && id != -1) {
+            System.out.println("Unit does not exists");
+            return;
+        }
+        if (id == -1) {
+            sc.nextLine();
+            return;
+        }
+        unitsBudget.removeIf(unit -> unit.getId() == id);
+    }
+
+    private static void editUnitBudget() {
+        UnitBudget unitBudget = getUnitBudgetInput();
+        if (unitBudget == null) return;
+        if (!unitBudgetExists(unitBudget.getId())) {
+            System.out.println("Unit does not exists");
+            return;
+        }
+        unitsBudget.removeIf(unit -> unit.getId() == unitBudget.getId());
+        unitsBudget.add(unitBudget);
+    }
+
+    private static boolean unitBudgetExists(int id) {
+        return unitsBudget.stream().anyMatch(unit -> unit.getId() == id);
     }
 }

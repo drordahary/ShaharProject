@@ -9,6 +9,10 @@ public class UnitBudget {
         this.budget = budget;
     }
 
+    public int getId() {
+        return this.id;
+    }
+
     @Override
     public String toString() {
         return String.format("ID: %d\nUnit Name: %s\nBudget: %.2f",
