@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class Main {
@@ -6,6 +7,7 @@ public class Main {
     private static final ArrayList<Item> items = new ArrayList<>();
     private static final ArrayList<UnitBudget> unitsBudget = new ArrayList<>();
     private static final ArrayList<Order> orders = new ArrayList<>();
+    private static final HashMap<Integer, Integer> unitsOrders = new HashMap<>(); // Order ID -> Unit ID
 
     public static void main(String[] args) {
 
@@ -96,6 +98,57 @@ public class Main {
 
     private static boolean unitBudgetExists(int id) {
         return unitsBudget.stream().anyMatch(unit -> unit.getId() == id);
+    }
+
+    private static void addOrder() {
+        Order order = getOrderInput();
+        if (order == null) return;
+
+        System.out.print("(Unit ID to attach the order to) ");
+        int unitId = getInputId();
+        if (!unitBudgetExists(unitId) && unitId != -1) {
+            System.out.println("Unit does not exists");
+            return;
+        }
+        if (unitId == -1) {
+            sc.nextLine();
+            return;
+        }
+
+        unitsOrders.put(order.getId(), unitId);
+        orders.add(order);
+        for (UnitBudget unitBudget : unitsBudget) {
+            if (unitBudget.getId() == unitId) {
+                unitBudget.addOrder(order);
+                return;
+            }
+        }
+    }
+
+    private static void removeOrder() {
+        int orderId = getInputId();
+        if (!orderExists(orderId) && orderId != -1) {
+            System.out.println("Order does not exists");
+            return;
+        }
+        if (orderId == -1) {
+            sc.nextLine();
+            return;
+        }
+
+        int unitId = unitsOrders.get(orderId);
+        orders.removeIf(order -> order.getId() == orderId);
+        unitsOrders.remove(orderId);
+        for (UnitBudget unitBudget : unitsBudget) {
+            if (unitBudget.getId() == unitId) {
+                unitBudget.removeOrder(orderId);
+                return;
+            }
+        }
+    }
+
+    private static boolean orderExists(int id) {
+        return orders.stream().anyMatch(order -> order.getId() == id);
     }
 
     private static Item getItemInput() {
@@ -215,5 +268,18 @@ public class Main {
         }
         sc.nextLine();
         return price;
+    }
+
+    private static Order getOrderInput() {
+        int id = getInputId();
+        if (id == -1) {
+            sc.nextLine();
+            return null;
+        }
+        if (orderExists(id)) {
+            System.out.println("Order already exists");
+            return null;
+        }
+        return new Order(id);
     }
 }

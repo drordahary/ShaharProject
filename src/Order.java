@@ -47,8 +47,13 @@ public class Order {
 
     @Override
     public String toString() {
-        return String.format("Order ID: %d\nStatus: %s\nCost: %.2f",
-                this.id, this.status, calculateCost());
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("Order ID: %d\nStatus: %s\nCost: %.2f\nItems:\n",
+                this.id, this.status, calculateCost()));
+        for (Item item : this.items.keySet()) {
+            sb.append(item);
+        }
+        return sb.toString();
     }
 
     @Override

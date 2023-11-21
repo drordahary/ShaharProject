@@ -17,16 +17,12 @@ public class UnitBudget {
         return this.id;
     }
 
-    public boolean orderExists(int orderId) {
-        return this.orders.stream().anyMatch(order -> order.getId() == orderId);
-    }
-
     public void addOrder(Order order) {
         this.orders.add(order);
     }
 
-    public void removeOrder(Order orderToRemove) {
-        this.orders.remove(orderToRemove);
+    public void removeOrder(int orderId) {
+        this.orders.removeIf(order -> order.getId() == orderId);
     }
 
     @Override
