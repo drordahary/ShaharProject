@@ -15,6 +15,10 @@ public class Order {
         return this.id;
     }
 
+    public String getStatus() {
+        return this.status;
+    }
+
     public void addItemOrder(Item item, int amount) {
         this.items.put(item, amount);
     }

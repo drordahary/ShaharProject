@@ -100,20 +100,23 @@ public class Main {
         return unitsBudget.stream().anyMatch(unit -> unit.getId() == id);
     }
 
-    private static void addOrder() {
-        Order order = getOrderInput();
-        if (order == null) return;
-
+    private static int getUnitIdIfExists() {
         System.out.print("(Unit ID to attach the order to) ");
         int unitId = getInputId();
         if (!unitBudgetExists(unitId) && unitId != -1) {
             System.out.println("Unit does not exists");
-            return;
+            return -1;
         }
         if (unitId == -1) {
             sc.nextLine();
-            return;
+            return -1;
         }
+        return unitId;
+    }
+
+    private static void addOrder(int unitId) {
+        Order order = getOrderInput();
+        if (order == null) return;
 
         unitsOrders.put(order.getId(), unitId);
         orders.add(order);
@@ -125,15 +128,25 @@ public class Main {
         }
     }
 
-    private static void removeOrder() {
+    private static int getOrderIdIfExists() {
         int orderId = getInputId();
         if (!orderExists(orderId) && orderId != -1) {
             System.out.println("Order does not exists");
-            return;
+            return -1;
         }
         if (orderId == -1) {
             sc.nextLine();
-            return;
+            return -1;
+        }
+        return orderId;
+    }
+
+    private static void removeOrder(int orderId) {
+        for (Order order : orders) {
+            if (order.getId() == orderId && !order.getStatus().equals("Pending")) {
+                System.out.println("Cannot cancel order because it is not pending");
+                return;
+            }
         }
 
         int unitId = unitsOrders.get(orderId);
@@ -143,6 +156,66 @@ public class Main {
             if (unitBudget.getId() == unitId) {
                 unitBudget.removeOrder(orderId);
                 return;
+            }
+        }
+    }
+
+    private int[] getItemOrderInformation() {
+        System.out.print("(Order) ");
+        int orderId = getInputId();
+        if (!orderExists(orderId) && orderId != -1) {
+            System.out.println("Order does not exists");
+            return null;
+        }
+        if (orderId == -1) {
+            sc.nextLine();
+            return null;
+        }
+
+        System.out.print("(Item) ");
+        int itemId = getInputId();
+        if (!itemExists(itemId) && itemId != -1) {
+            System.out.println("Order does not exists");
+            return null;
+        }
+        if (itemId == -1) {
+            sc.nextLine();
+            return null;
+        }
+
+        return new int[] { orderId, itemId };
+    }
+
+    private int getAmountToOrder() {
+        int amount = getInputAmount();
+        if (amount < 1) {
+            sc.nextLine();
+            return -1;
+        }
+        return amount;
+    }
+
+    private void addItemToOrder(int orderId, int itemId, int amount) {
+        for (Order order : orders) {
+            if (order.getId() == orderId) {
+                order.addItemOrder(items.stream().filter(item -> item.getId() == itemId)
+                        .findFirst().orElse(null), amount);
+            }
+        }
+    }
+
+    private void removeItemFromOrder(int orderId, int itemId) {
+        for (Order order : orders) {
+            if (order.getId() == orderId) {
+                order.removeItemOrder(itemId);
+            }
+        }
+    }
+
+    private void editItemInOrder(int orderId, int itemId, int amount) {
+        for (Order order : orders) {
+            if (order.getId() == orderId) {
+                order.editItemOrder(itemId, amount);
             }
         }
     }
