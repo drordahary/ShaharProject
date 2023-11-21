@@ -4,6 +4,7 @@ import java.util.Scanner;
 public class Main {
     private static final Scanner sc = new Scanner(System.in);
     private static final ArrayList<Item> items = new ArrayList<>();
+    private static final ArrayList<UnitBudget> unitsBudget = new ArrayList<>();
 
     public static void main(String[] args) {
         addItem();
