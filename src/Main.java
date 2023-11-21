@@ -9,8 +9,110 @@ public class Main {
     private static final ArrayList<Order> orders = new ArrayList<>();
     private static final HashMap<Integer, Integer> unitsOrders = new HashMap<>(); // Order ID -> Unit ID
 
-    public static void main(String[] args) {
+    private enum Choice {
+        ADD_ITEM,
+        REMOVE_ITEM,
+        EDIT_ITEM,
+        SHOW_ITEMS,
+        ADD_UNIT,
+        REMOVE_UNIT,
+        EDIT_UNIT,
+        SHOW_UNITS,
+        ADD_ORDER,
+        REMOVE_ORDER,
+        EDIT_ORDER,
+        SHOW_ORDERS,
+        SEARCH_ORDER,
+        FILTER_ORDERS,
+        EXECUTE_ORDER,
+        EXIT
+    }
 
+    private enum EditOrderChoice {
+        ADD_ITEM_TO_ORDER,
+        REMOVE_ITEM_FROM_ORDER,
+        EDIT_ITEM_IN_ORDER,
+        SHOW_ITEMS_IN_ORDER,
+        FINISH_EDITING
+    }
+
+    public static void main(String[] args) {
+        Choice choice = null;
+        int input = -1;
+
+        while (input != Choice.EXIT.ordinal()) {
+            if (sc.hasNextInt()) {
+                input = sc.nextInt() - 1;
+                if (Choice.SHOW_ORDERS.ordinal() >= input && input >= 0)
+                    choice = Choice.values()[input];
+            }
+            if (input <= -1 || choice == null) {
+                System.out.println("Invalid input");
+                continue;
+            }
+
+            switch (choice) {
+                case ADD_ITEM -> addItem();
+                case REMOVE_ITEM -> removeItem();
+                case EDIT_ITEM -> editItem();
+                case SHOW_ITEMS -> showItems();
+                case ADD_UNIT -> addUnitBudget();
+                case REMOVE_UNIT -> removeUnitBudget();
+                case EDIT_UNIT -> editUnitBudget();
+                case SHOW_UNITS -> showUnits();
+                case ADD_ORDER -> {
+                    int unitId = getUnitIdIfExists();
+                    if (unitId != -1) addOrder(unitId);
+                }
+                case REMOVE_ORDER -> {
+                    int orderId = getOrderIdIfExists();
+                    if (orderId != -1) removeOrder(orderId);
+                }
+                case EDIT_ORDER -> System.out.println("Not implemented");
+                case SHOW_ORDERS -> showOrders();
+                case SEARCH_ORDER -> {
+                    int orderId = getOrderIdIfExists();
+                    if (orderId != -1) searchOrder(orderId);
+                }
+                case FILTER_ORDERS -> {
+                    String status = sc.nextLine();
+                    filterOrdersByStatus(status);
+                }
+                case EXECUTE_ORDER -> System.out.println("Not implemented");
+                case EXIT -> sc.close();
+            }
+        }
+    }
+
+    private static void showMenu() {
+        System.out.println("1. Add item");
+        System.out.println("2. Remove item");
+        System.out.println("3. Edit item");
+        System.out.println("4. Show items");
+        System.out.println("5. Add unit");
+        System.out.println("6. Remove unit");
+        System.out.println("7. Edit unit");
+        System.out.println("8. Show units");
+        System.out.println("9. Add order");
+        System.out.println("10. Remove order");
+        System.out.println("11. Edit order");
+        System.out.println("12. Show orders");
+        System.out.println("13. Search order");
+        System.out.println("14. Filter orders by status");
+        System.out.println("15. Execute order");
+        System.out.println("16. Exit");
+    }
+
+    private static void searchOrder(int orderId) {
+        System.out.println(orders.stream().filter(order -> order.getId() == orderId).findFirst());
+    }
+
+    private static void filterOrdersByStatus(String status) {
+        for (Order order : orders) {
+            if (order.getStatus().equals(status)) {
+                System.out.println(order);
+            }
+        }
     }
 
     private static void addItem() {
@@ -56,6 +158,18 @@ public class Main {
         items.get(itemIdx).setDescription(item.getDescription());
         items.get(itemIdx).setPrice(item.getPrice());
         items.get(itemIdx).setAmount(item.getAmount());
+    }
+
+    private static void showItems() {
+        items.forEach(System.out::println);
+    }
+
+    private static void showUnits() {
+        unitsBudget.forEach(System.out::println);
+    }
+
+    private static void showOrders() {
+        orders.forEach(System.out::println);
     }
 
     private static boolean itemExists(int itemId) {
