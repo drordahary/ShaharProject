@@ -5,17 +5,10 @@ public class Main {
     private static final Scanner sc = new Scanner(System.in);
     private static final ArrayList<Item> items = new ArrayList<>();
     private static final ArrayList<UnitBudget> unitsBudget = new ArrayList<>();
+    private static final ArrayList<Order> orders = new ArrayList<>();
 
     public static void main(String[] args) {
-        addItem();
-        removeItem();
-        editItem();
-        items.forEach(System.out::println);
 
-        addUnitBudget();
-        removeUnitBudget();
-        editUnitBudget();
-        unitsBudget.forEach(System.out::println);
     }
 
     private static void addItem() {
@@ -39,6 +32,9 @@ public class Main {
             return;
         }
         items.removeIf(item -> item.getId() == id);
+        for (Order order : orders) {
+            order.removeItemOrder(id);
+        }
     }
 
     private static void editItem() {
@@ -48,12 +44,58 @@ public class Main {
             System.out.println("Item does not exists");
             return;
         }
-        items.removeIf(it -> it.getId() == item.getId());
-        items.add(item);
+        int itemIdx = -1;
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).getId() == item.getId()) {
+                itemIdx = i;
+                break;
+            }
+        }
+        items.get(itemIdx).setDescription(item.getDescription());
+        items.get(itemIdx).setPrice(item.getPrice());
+        items.get(itemIdx).setAmount(item.getAmount());
     }
 
     private static boolean itemExists(int itemId) {
         return items.stream().anyMatch(item -> item.getId() == itemId);
+    }
+
+    private static void addUnitBudget() {
+        UnitBudget unitBudget = getUnitBudgetInput();
+        if (unitBudget == null) return;
+        if (unitBudgetExists(unitBudget.getId())) {
+            System.out.println("Unit ID already exists");
+            return;
+        }
+        unitsBudget.add(unitBudget);
+    }
+
+    private static void removeUnitBudget() {
+        int id = getInputId();
+        if (!unitBudgetExists(id) && id != -1) {
+            System.out.println("Unit does not exists");
+            return;
+        }
+        if (id == -1) {
+            sc.nextLine();
+            return;
+        }
+        unitsBudget.removeIf(unit -> unit.getId() == id);
+    }
+
+    private static void editUnitBudget() {
+        UnitBudget unitBudget = getUnitBudgetInput();
+        if (unitBudget == null) return;
+        if (!unitBudgetExists(unitBudget.getId())) {
+            System.out.println("Unit does not exists");
+            return;
+        }
+        unitsBudget.removeIf(unit -> unit.getId() == unitBudget.getId());
+        unitsBudget.add(unitBudget);
+    }
+
+    private static boolean unitBudgetExists(int id) {
+        return unitsBudget.stream().anyMatch(unit -> unit.getId() == id);
     }
 
     private static Item getItemInput() {
@@ -173,43 +215,5 @@ public class Main {
         }
         sc.nextLine();
         return price;
-    }
-
-    private static void addUnitBudget() {
-        UnitBudget unitBudget = getUnitBudgetInput();
-        if (unitBudget == null) return;
-        if (unitBudgetExists(unitBudget.getId())) {
-            System.out.println("Unit ID already exists");
-            return;
-        }
-        unitsBudget.add(unitBudget);
-    }
-
-    private static void removeUnitBudget() {
-        int id = getInputId();
-        if (!unitBudgetExists(id) && id != -1) {
-            System.out.println("Unit does not exists");
-            return;
-        }
-        if (id == -1) {
-            sc.nextLine();
-            return;
-        }
-        unitsBudget.removeIf(unit -> unit.getId() == id);
-    }
-
-    private static void editUnitBudget() {
-        UnitBudget unitBudget = getUnitBudgetInput();
-        if (unitBudget == null) return;
-        if (!unitBudgetExists(unitBudget.getId())) {
-            System.out.println("Unit does not exists");
-            return;
-        }
-        unitsBudget.removeIf(unit -> unit.getId() == unitBudget.getId());
-        unitsBudget.add(unitBudget);
-    }
-
-    private static boolean unitBudgetExists(int id) {
-        return unitsBudget.stream().anyMatch(unit -> unit.getId() == id);
     }
 }

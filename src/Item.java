@@ -1,8 +1,8 @@
 public class Item {
     private final int id;
-    private final String description;
-    private final float price;
-    private final int amount;
+    private String description;
+    private float price;
+    private int amount;
 
     public Item(int id, String description, float price, int amount) {
         this.id = id;
@@ -15,9 +15,33 @@ public class Item {
         return this.id;
     }
 
+    public String getDescription() {
+        return this.description;
+    }
+
+    public float getPrice() {
+        return this.price;
+    }
+
+    public int getAmount() {
+        return this.amount;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setPrice(float price) {
+        this.price = price;
+    }
+
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
+
     @Override
     public String toString() {
-        return String.format("ID: %d\nDescription: %s\nPrice: %.2f\nAmount: %d",
+        return String.format("Item ID: %d\nDescription: %s\nPrice: %.2f\nAmount: %d",
                 this.id, this.description, this.price, this.amount);
     }
 }
