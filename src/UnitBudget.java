@@ -3,7 +3,7 @@ import java.util.ArrayList;
 public class UnitBudget {
     private final int id;
     private final String unitName;
-    private final float budget;
+    private float budget;
     private final ArrayList<Order> orders;
 
     public UnitBudget(int id, String unitName, float budget) {
@@ -15,6 +15,14 @@ public class UnitBudget {
 
     public int getId() {
         return this.id;
+    }
+
+    public float getBudget() {
+        return this.budget;
+    }
+
+    public void setBudget(float budget) {
+        this.budget = budget;
     }
 
     public void addOrder(Order order) {

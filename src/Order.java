@@ -1,9 +1,10 @@
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Order {
     private final int id;
     private final HashMap<Item, Integer> items; // Item ID -> amount to order
-    private final String status;
+    private String status;
 
     public Order(int id) {
         this.id = id;
@@ -17,6 +18,10 @@ public class Order {
 
     public String getStatus() {
         return this.status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public void addItemOrder(Item item, int amount) {
@@ -43,10 +48,26 @@ public class Order {
 
     public float calculateCost() {
         float totalCost = 0;
-        for (Item item : items.keySet()) {
-            totalCost += item.getPrice() * items.get(item);
+        for (Item item : this.items.keySet()) {
+            totalCost += item.getPrice() * this.items.get(item);
         }
         return totalCost;
+    }
+
+    public boolean isBudgetSufficient(float budget) {
+        return calculateCost() <= budget;
+    }
+
+    // Show all the items that deny the order from completion
+    public void showBlockingOrderItems(float budget) {
+        float currentCost = 0;
+        for (Item item : this.items.keySet()) {
+            if (currentCost > budget) {
+                System.out.println(item);
+                System.out.println("Amount ordering: " + this.items.get(item));
+            }
+            currentCost += item.getPrice() * this.items.get(item);
+        }
     }
 
     @Override

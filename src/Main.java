@@ -41,9 +41,11 @@ public class Main {
         int input = -1;
 
         while (input != Choice.EXIT.ordinal()) {
+            showMenu();
+            System.out.print("Enter choice: ");
             if (sc.hasNextInt()) {
                 input = sc.nextInt() - 1;
-                if (Choice.SHOW_ORDERS.ordinal() >= input && input >= 0)
+                if (Choice.EXIT.ordinal() >= input && input >= 0)
                     choice = Choice.values()[input];
             }
             if (input <= -1 || choice == null) {
@@ -68,7 +70,10 @@ public class Main {
                     int orderId = getOrderIdIfExists();
                     if (orderId != -1) removeOrder(orderId);
                 }
-                case EDIT_ORDER -> System.out.println("Not implemented");
+                case EDIT_ORDER -> {
+                    int orderId = getOrderIdIfExists();
+                    if (orderId != -1) editOrderMenuChooser(orderId);
+                }
                 case SHOW_ORDERS -> showOrders();
                 case SEARCH_ORDER -> {
                     int orderId = getOrderIdIfExists();
@@ -78,7 +83,16 @@ public class Main {
                     String status = sc.nextLine();
                     filterOrdersByStatus(status);
                 }
-                case EXECUTE_ORDER -> System.out.println("Not implemented");
+                case EXECUTE_ORDER -> {
+                    int orderId = getOrderIdIfExists();
+                    if (orderId != -1) {
+                        int unitId = unitsOrders.get(orderId);
+                        unitsBudget.stream()
+                                .filter(unit -> unit.getId() == unitId)
+                                .findFirst()
+                                .ifPresent(unitBudget -> executeOrder(orderId, unitBudget));
+                    }
+                }
                 case EXIT -> sc.close();
             }
         }
@@ -101,6 +115,53 @@ public class Main {
         System.out.println("14. Filter orders by status");
         System.out.println("15. Execute order");
         System.out.println("16. Exit");
+    }
+
+    private static void editOrderMenuChooser(int orderId) {
+        EditOrderChoice choice = null;
+        int input = -1;
+
+        while (input != EditOrderChoice.FINISH_EDITING.ordinal()) {
+            showEditMenu();
+            System.out.print("Enter choice: ");
+            if (sc.hasNextInt()) {
+                input = sc.nextInt() - 1;
+                if (EditOrderChoice.FINISH_EDITING.ordinal() >= input && input >= 0)
+                    choice = EditOrderChoice.values()[input];
+            }
+            if (input <= -1 || choice == null) {
+                System.out.println("Invalid input");
+                continue;
+            }
+
+            switch (choice) {
+                case ADD_ITEM_TO_ORDER -> {
+                    int itemId = getItemIdIfExists();
+                    int amount = getAmountToOrder();
+                    if (itemId != -1 && amount != -1) addItemToOrder(orderId, itemId, amount);
+                }
+                case REMOVE_ITEM_FROM_ORDER -> {
+                    int itemId = getItemIdIfExists();
+                    if (itemId != -1) removeItemFromOrder(orderId, itemId);
+                }
+                case EDIT_ITEM_IN_ORDER -> {
+                    int itemId = getItemIdIfExists();
+                    int amount = getAmountToOrder();
+                    if (itemId != -1 && amount != -1) editItemInOrder(orderId, itemId, amount);
+                }
+                case SHOW_ITEMS_IN_ORDER -> System.out.println(orders.stream()
+                        .filter(order -> order.getId() == orderId)
+                        .findFirst());
+            }
+        }
+    }
+
+    private static void showEditMenu() {
+        System.out.println("1. Add item to order");
+        System.out.println("2. Remove item from order");
+        System.out.println("3. Edit item in order");
+        System.out.println("4. Show items in order");
+        System.out.println("5. Finish editing order");
     }
 
     private static void searchOrder(int orderId) {
@@ -274,33 +335,21 @@ public class Main {
         }
     }
 
-    private int[] getItemOrderInformation() {
-        System.out.print("(Order) ");
-        int orderId = getInputId();
-        if (!orderExists(orderId) && orderId != -1) {
-            System.out.println("Order does not exists");
-            return null;
-        }
-        if (orderId == -1) {
-            sc.nextLine();
-            return null;
-        }
-
+    private static int getItemIdIfExists() {
         System.out.print("(Item) ");
         int itemId = getInputId();
         if (!itemExists(itemId) && itemId != -1) {
             System.out.println("Order does not exists");
-            return null;
+            return -1;
         }
         if (itemId == -1) {
             sc.nextLine();
-            return null;
+            return -1;
         }
-
-        return new int[] { orderId, itemId };
+        return itemId;
     }
 
-    private int getAmountToOrder() {
+    private static int getAmountToOrder() {
         int amount = getInputAmount();
         if (amount < 1) {
             sc.nextLine();
@@ -309,7 +358,7 @@ public class Main {
         return amount;
     }
 
-    private void addItemToOrder(int orderId, int itemId, int amount) {
+    private static void addItemToOrder(int orderId, int itemId, int amount) {
         for (Order order : orders) {
             if (order.getId() == orderId) {
                 order.addItemOrder(items.stream().filter(item -> item.getId() == itemId)
@@ -318,7 +367,7 @@ public class Main {
         }
     }
 
-    private void removeItemFromOrder(int orderId, int itemId) {
+    private static void removeItemFromOrder(int orderId, int itemId) {
         for (Order order : orders) {
             if (order.getId() == orderId) {
                 order.removeItemOrder(itemId);
@@ -326,7 +375,7 @@ public class Main {
         }
     }
 
-    private void editItemInOrder(int orderId, int itemId, int amount) {
+    private static void editItemInOrder(int orderId, int itemId, int amount) {
         for (Order order : orders) {
             if (order.getId() == orderId) {
                 order.editItemOrder(itemId, amount);
@@ -336,6 +385,25 @@ public class Main {
 
     private static boolean orderExists(int id) {
         return orders.stream().anyMatch(order -> order.getId() == id);
+    }
+
+    private static void executeOrder(int orderId, UnitBudget unitBudget) {
+        Order order = orders.stream()
+                .filter(ord -> ord.getId() == orderId)
+                .findFirst()
+                .orElse(null);
+        if (order == null) return;
+        if (!order.getStatus().equals("Pending")) System.out.println("Order is not pending");
+        if (order.isBudgetSufficient(unitBudget.getBudget())) completeOrder(order, unitBudget);
+
+        System.out.println("Blocking items in order:");
+        order.showBlockingOrderItems(unitBudget.getBudget());
+        editOrderMenuChooser(orderId);
+    }
+
+    private static void completeOrder(Order order, UnitBudget unitBudget) {
+        order.setStatus("Done");
+        unitBudget.setBudget(unitBudget.getBudget() - order.calculateCost());
     }
 
     private static Item getItemInput() {
