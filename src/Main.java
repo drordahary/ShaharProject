@@ -9,6 +9,7 @@ public class Main {
         addItem();
         addItem();
         addItem();
+        removeItem();
         items.forEach(System.out::println);
     }
 
@@ -18,12 +19,26 @@ public class Main {
         items.add(item);
     }
 
+    private static void removeItem() {
+        int id = getInputId();
+        if (!itemExists(id)) {
+            System.out.println("Item does not exists");
+            return;
+        }
+        if (id == -1) return;
+        items.removeIf(item -> item.getId() == id);
+    }
+
     private static boolean itemExists(int itemId) {
         return items.stream().anyMatch(item -> item.getId() == itemId);
     }
 
     private static Item getItemInput() {
         int id = getInputId();
+        if (itemExists(id)) {
+            System.out.println("Item ID already exists");
+            return null;
+        }
         if (id == -1) {
             sc.nextLine();
             return null;
@@ -54,10 +69,6 @@ public class Main {
         int id = 0;
         if (sc.hasNextInt()) {
             id = sc.nextInt();
-            if (itemExists(id)) {
-                System.out.println("Item ID already exists");
-                return -1;
-            }
         }
         if (id < 1) {
             System.out.println("Invalid ID");
