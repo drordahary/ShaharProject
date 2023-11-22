@@ -47,7 +47,7 @@ public class UnitBudget {
 
     @Override
     public String toString() {
-        return String.format("Unit Budget ID: %d\nUnit Name: %s\nBudget: %.2f",
+        return String.format("Unit Budget ID: %d\nUnit Name: %s\nBudget: %.2f\n",
                 this.id, this.unitName, this.budget);
     }
 }

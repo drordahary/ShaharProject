@@ -41,7 +41,7 @@ public class Item {
 
     @Override
     public String toString() {
-        return String.format("Item ID: %d\nDescription: %s\nPrice: %.2f\nAmount: %d\n\n",
+        return String.format("Item ID: %d\nDescription: %s\nPrice: %.2f\nAmount: %d\n",
                 this.id, this.description, this.price, this.amount);
     }
 }

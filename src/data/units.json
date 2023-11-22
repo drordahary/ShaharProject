@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "unitName": "shahar",
+    "ordersIds": [1],
+    "id": 1,
+    "budget": 8500
+  },
+  {
+    "unitName": "matzpen",
+    "ordersIds": [],
+    "id": 2,
+    "budget": 1000
+  },
+  {
+    "unitName": "mamram",
+    "ordersIds": [2],
+    "id": 3,
+    "budget": 1000
+  }
+]

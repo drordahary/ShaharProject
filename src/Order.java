@@ -67,15 +67,38 @@ public class Order {
         return calculateCost() <= budget;
     }
 
+    private boolean isExceedingSupply(Item item) {
+        return item.getAmount() < this.items.get(item);
+    }
+
+    public boolean isAnyExceedsSupply() {
+        for (Item item : this.items.keySet()) {
+            if (isExceedingSupply(item)) return true;
+        }
+        return false;
+    }
+
+    public void completeOrder() {
+        setStatus("Done");
+        for (Item item : this.items.keySet()) {
+            item.setAmount(item.getAmount() - this.items.get(item));
+        }
+    }
+
     // Show all the items that deny the order from completion
     public void showBlockingOrderItems(float budget) {
         float currentCost = 0;
         for (Item item : this.items.keySet()) {
-            if (currentCost > budget) {
+            currentCost += item.getPrice() * this.items.get(item);
+            if (isExceedingSupply(item)) {
+                System.out.println("Exceeding supply:");
                 System.out.println(item);
                 System.out.println("Amount ordering: " + this.items.get(item));
             }
-            currentCost += item.getPrice() * this.items.get(item);
+            else if (currentCost > budget) {
+                System.out.println(item);
+                System.out.println("Amount ordering: " + this.items.get(item));
+            }
         }
     }
 
@@ -86,6 +109,7 @@ public class Order {
                 this.id, this.status, calculateCost()));
         for (Item item : this.items.keySet()) {
             sb.append(item);
+            sb.append("Amount ordering: ").append(this.items.get(item)).append("\n");
         }
         return sb.toString();
     }

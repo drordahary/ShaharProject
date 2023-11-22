@@ -1,65 +1,68 @@
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class JsonHandler {
-    private final String itemsPath = "\\data\\items.json";
-    private final String ordersPath = "\\data\\units.json";
-    private final String unitsPath = "\\data\\orders.json";
+    private final String itemsPath = "./src/data/items.json";
+    private final String ordersPath = "./src/data/orders.json";
+    private final String unitsPath = "./src/data/units.json";
     private JSONArray jsonArray;
     private final JSONArray itemsJsonArray = new JSONArray();
     private final JSONArray ordersJsonArray = new JSONArray();
     private final JSONArray unitsJsonArray = new JSONArray();
 
-    public ArrayList<Item> readJsonItems() {
-        try (FileReader fileReader = new FileReader(itemsPath)) {
-            jsonArray = new JSONArray(fileReader);
-            ArrayList<Item> items = new ArrayList<>();
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                int id = jsonObject.getInt("id");
-                String description = jsonObject.getString("description");
-                float price = jsonObject.getFloat("price");
-                int amount = jsonObject.getInt("amount");
-                items.add(new Item(id, description, price, amount));
+    private String getJsonDataAsString(String path) {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
+            // Read the entire file into a StringBuilder
+            StringBuilder stringBuilder = new StringBuilder();
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
             }
-            return items;
+            return stringBuilder.toString();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
+        return "[]";
+    }
+
+    public ArrayList<Item> readJsonItems() {
+        jsonArray = new JSONArray(getJsonDataAsString(itemsPath));
+        ArrayList<Item> items = new ArrayList<>();
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            int id = jsonObject.getInt("id");
+            String description = jsonObject.getString("description");
+            float price = jsonObject.getFloat("price");
+            int amount = jsonObject.getInt("amount");
+            items.add(new Item(id, description, price, amount));
+        }
+        return items;
     }
 
     public ArrayList<Order> readJsonOrders(ArrayList<Item> items) {
-        try (FileReader fileReader = new FileReader(ordersPath)) {
-            jsonArray = new JSONArray(fileReader);
-            ArrayList<Order> orders = new ArrayList<>();
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                int id = jsonObject.getInt("id");
-                int unitId = jsonObject.getInt("unitId");
-                String status = jsonObject.getString("status");
-                JSONArray itemsIds = jsonObject.getJSONArray("itemsIds");
-                Order order = new Order(id, unitId);
-                order.setStatus(status);
-                addItemsToOrder(order, itemsIds, items);
-                orders.add(order);
-            }
-            return orders;
-        } catch (IOException e) {
-            e.printStackTrace();
+        jsonArray = new JSONArray(getJsonDataAsString(ordersPath));
+        ArrayList<Order> orders = new ArrayList<>();
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            int id = jsonObject.getInt("id");
+            int unitId = jsonObject.getInt("unitId");
+            String status = jsonObject.getString("status");
+            JSONArray itemsIds = jsonObject.getJSONArray("itemsIds");
+            Order order = new Order(id, unitId);
+            order.setStatus(status);
+            addItemsToOrder(order, itemsIds, items);
+            orders.add(order);
         }
-        return null;
+        return orders;
     }
 
     private void addItemsToOrder(Order order, JSONArray itemsIds, ArrayList<Item> items) {
         for (int i = 0; i < itemsIds.length(); i++) {
-            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            JSONObject jsonObject = itemsIds.getJSONObject(i);
             int id = jsonObject.getInt("id");
             int amount = jsonObject.getInt("amount");
             Item item = items.stream()
@@ -71,24 +74,19 @@ public class JsonHandler {
     }
 
     public ArrayList<UnitBudget> readJsonUnits(ArrayList<Order> orders) {
-        try (FileReader fileReader = new FileReader(unitsPath)) {
-            jsonArray = new JSONArray(fileReader);
-            ArrayList<UnitBudget> unitBudgets = new ArrayList<>();
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                int id = jsonObject.getInt("id");
-                String unitName = jsonObject.getString("unitName");
-                float budget = jsonObject.getFloat("budget");
-                JSONArray ordersIds = jsonObject.getJSONArray("ordersIds");
-                UnitBudget unitBudget = new UnitBudget(id, unitName, budget);
-                addOrdersToUnit(unitBudget, ordersIds, orders);
-                unitBudgets.add(unitBudget);
-            }
-            return unitBudgets;
-        } catch (IOException e) {
-            e.printStackTrace();
+        jsonArray = new JSONArray(getJsonDataAsString(unitsPath));
+        ArrayList<UnitBudget> unitBudgets = new ArrayList<>();
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            int id = jsonObject.getInt("id");
+            String unitName = jsonObject.getString("unitName");
+            float budget = jsonObject.getFloat("budget");
+            JSONArray ordersIds = jsonObject.getJSONArray("ordersIds");
+            UnitBudget unitBudget = new UnitBudget(id, unitName, budget);
+            addOrdersToUnit(unitBudget, ordersIds, orders);
+            unitBudgets.add(unitBudget);
         }
-        return null;
+        return unitBudgets;
     }
 
     private void addOrdersToUnit(UnitBudget unitBudget, JSONArray ordersIds,ArrayList<Order> orders) {
@@ -104,6 +102,7 @@ public class JsonHandler {
     }
 
     public void writeItemsToFile(ArrayList<Item> items) {
+        this.itemsJsonArray.clear();
         for (Item item : items) {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("id", item.getId());
@@ -121,6 +120,7 @@ public class JsonHandler {
     }
 
     public void writeOrdersToFile(ArrayList<Order> orders) {
+        this.ordersJsonArray.clear();
         for (Order order : orders) {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("id", order.getId());
@@ -145,6 +145,7 @@ public class JsonHandler {
     }
 
     public void writeUnitsToFile(ArrayList<UnitBudget> unitBudgets) {
+        this.unitsJsonArray.clear();
         for (UnitBudget unitBudget : unitBudgets) {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("id", unitBudget.getId());

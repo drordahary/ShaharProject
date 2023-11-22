@@ -88,6 +88,8 @@ public class Main {
                     if (orderId != -1) searchOrder(orderId);
                 }
                 case FILTER_ORDERS -> {
+                    sc.nextLine();
+                    System.out.print("Enter filter: ");
                     String status = sc.nextLine();
                     filterOrdersByStatus(status);
                 }
@@ -126,6 +128,12 @@ public class Main {
     }
 
     private static void editOrderMenuChooser(int orderId) {
+        Order orderToEdit = orders.stream()
+                .filter(ord -> ord.getId() == orderId)
+                .findFirst()
+                .orElse(null);
+        if (orderToEdit == null) return;
+        if (orderToEdit.getStatus().equals("Done")) System.out.println("Order already done");
         EditOrderChoice choice = null;
         int input = -1;
 
@@ -159,7 +167,7 @@ public class Main {
                 }
                 case SHOW_ITEMS_IN_ORDER -> System.out.println(orders.stream()
                         .filter(order -> order.getId() == orderId)
-                        .findFirst());
+                        .findFirst().orElse(null));
             }
         }
     }
@@ -173,7 +181,10 @@ public class Main {
     }
 
     private static void searchOrder(int orderId) {
-        System.out.println(orders.stream().filter(order -> order.getId() == orderId).findFirst());
+        System.out.println(orders.stream()
+                .filter(order -> order.getId() == orderId)
+                .findFirst()
+                .orElse(null));
     }
 
     private static void filterOrdersByStatus(String status) {
@@ -324,11 +335,11 @@ public class Main {
         for (UnitBudget unitBudget : unitsBudget) {
             if (unitBudget.getId() == unitId) {
                 unitBudget.addOrder(order);
+                jsonHandler.writeOrdersToFile(orders);
+                jsonHandler.writeUnitsToFile(unitsBudget);
                 return;
             }
         }
-        jsonHandler.writeOrdersToFile(orders);
-        jsonHandler.writeUnitsToFile(unitsBudget);
     }
 
     private static int getOrderIdIfExists() {
@@ -358,18 +369,18 @@ public class Main {
         for (UnitBudget unitBudget : unitsBudget) {
             if (unitBudget.getId() == unitId) {
                 unitBudget.removeOrder(orderId);
+                jsonHandler.writeOrdersToFile(orders);
+                jsonHandler.writeUnitsToFile(unitsBudget);
                 return;
             }
         }
-        jsonHandler.writeOrdersToFile(orders);
-        jsonHandler.writeUnitsToFile(unitsBudget);
     }
 
     private static int getItemIdIfExists() {
         System.out.print("(Item) ");
         int itemId = getInputId();
         if (!itemExists(itemId) && itemId != -1) {
-            System.out.println("Order does not exists");
+            System.out.println("Item does not exists");
             return -1;
         }
         if (itemId == -1) {
@@ -389,22 +400,34 @@ public class Main {
     }
 
     private static void addItemToOrder(int orderId, int itemId, int amount) {
+        Order orderToAddTo = null;
         for (Order order : orders) {
             if (order.getId() == orderId) {
-                order.addItemOrder(items.stream().filter(item -> item.getId() == itemId)
-                        .findFirst().orElse(null), amount);
+                orderToAddTo = order;
+                for (Item item : order.getItems().keySet()) {
+                    if (item.getId() == itemId) {
+                        System.out.println("Order already set for unit with ID: " + order.getUnitId());
+                        return;
+                    }
+                }
+                break;
             }
         }
+        if (orderToAddTo == null) return;
+        orderToAddTo.addItemOrder(items.stream().filter(item -> item.getId() == itemId)
+                .findFirst().orElse(null), amount);
         jsonHandler.writeOrdersToFile(orders);
+        jsonHandler.writeUnitsToFile(unitsBudget);
     }
 
     private static void removeItemFromOrder(int orderId, int itemId) {
         for (Order order : orders) {
             if (order.getId() == orderId) {
                 order.removeItemOrder(itemId);
+                jsonHandler.writeOrdersToFile(orders);
+                return;
             }
         }
-        jsonHandler.writeOrdersToFile(orders);
     }
 
     private static void editItemInOrder(int orderId, int itemId, int amount) {
@@ -427,8 +450,10 @@ public class Main {
                 .orElse(null);
         if (order == null) return;
         if (!order.getStatus().equals("Pending")) System.out.println("Order is not pending");
-        if (order.isBudgetSufficient(unitBudget.getBudget())) {
+
+        if (order.isBudgetSufficient(unitBudget.getBudget()) && !order.isAnyExceedsSupply()) {
             completeOrder(order, unitBudget);
+            jsonHandler.writeItemsToFile(items);
             jsonHandler.writeOrdersToFile(orders);
             jsonHandler.writeUnitsToFile(unitsBudget);
             return;
@@ -440,7 +465,7 @@ public class Main {
     }
 
     private static void completeOrder(Order order, UnitBudget unitBudget) {
-        order.setStatus("Done");
+        order.completeOrder();
         unitBudget.setBudget(unitBudget.getBudget() - order.calculateCost());
     }
 
@@ -564,6 +589,7 @@ public class Main {
     }
 
     private static Order getOrderInput(int unitId) {
+        System.out.print("(Order ID) ");
         int id = getInputId();
         if (id == -1) {
             sc.nextLine();
