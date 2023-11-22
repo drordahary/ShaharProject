@@ -1,13 +1,14 @@
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Order {
     private final int id;
+    private final int unitId;
     private final HashMap<Item, Integer> items; // Item ID -> amount to order
     private String status;
 
-    public Order(int id) {
+    public Order(int id, int unitId) {
         this.id = id;
+        this.unitId = unitId;
         this.items = new HashMap<>();
         this.status = "Pending";
     }
@@ -16,8 +17,16 @@ public class Order {
         return this.id;
     }
 
+    public int getUnitId() {
+        return this.unitId;
+    }
+
     public String getStatus() {
         return this.status;
+    }
+
+    public HashMap<Item, Integer> getItems() {
+        return this.items;
     }
 
     public void setStatus(String status) {

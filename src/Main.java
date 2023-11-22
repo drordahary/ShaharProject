@@ -4,10 +4,17 @@ import java.util.Scanner;
 
 public class Main {
     private static final Scanner sc = new Scanner(System.in);
-    private static final ArrayList<Item> items = new ArrayList<>();
-    private static final ArrayList<UnitBudget> unitsBudget = new ArrayList<>();
-    private static final ArrayList<Order> orders = new ArrayList<>();
+    private static final JsonHandler jsonHandler = new JsonHandler();
+    private static final ArrayList<Item> items = jsonHandler.readJsonItems();
+    private static final ArrayList<Order> orders = jsonHandler.readJsonOrders(items);
+    private static final ArrayList<UnitBudget> unitsBudget = jsonHandler.readJsonUnits(orders);
     private static final HashMap<Integer, Integer> unitsOrders = new HashMap<>(); // Order ID -> Unit ID
+
+    private static void setUnitsOrders() {
+        for (Order order : orders) {
+            unitsOrders.put(order.getId(), order.getUnitId());
+        }
+    }
 
     private enum Choice {
         ADD_ITEM,
@@ -37,6 +44,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
+        setUnitsOrders();
         Choice choice = null;
         int input = -1;
 
@@ -184,6 +192,7 @@ public class Main {
             return;
         }
         items.add(item);
+        jsonHandler.writeItemsToFile(items);
     }
 
     private static void removeItem() {
@@ -200,6 +209,8 @@ public class Main {
         for (Order order : orders) {
             order.removeItemOrder(id);
         }
+        jsonHandler.writeItemsToFile(items);
+        jsonHandler.writeOrdersToFile(orders); // Since orders also changed
     }
 
     private static void editItem() {
@@ -219,6 +230,9 @@ public class Main {
         items.get(itemIdx).setDescription(item.getDescription());
         items.get(itemIdx).setPrice(item.getPrice());
         items.get(itemIdx).setAmount(item.getAmount());
+
+        jsonHandler.writeItemsToFile(items);
+        jsonHandler.writeOrdersToFile(orders); // Since orders also changed (Objects saved as reference)
     }
 
     private static void showItems() {
@@ -245,6 +259,7 @@ public class Main {
             return;
         }
         unitsBudget.add(unitBudget);
+        jsonHandler.writeUnitsToFile(unitsBudget);
     }
 
     private static void removeUnitBudget() {
@@ -257,7 +272,12 @@ public class Main {
             sc.nextLine();
             return;
         }
+        // Removing all of its orders too
+        orders.removeIf(order -> order.getUnitId() == id);
         unitsBudget.removeIf(unit -> unit.getId() == id);
+
+        jsonHandler.writeOrdersToFile(orders);
+        jsonHandler.writeUnitsToFile(unitsBudget);
     }
 
     private static void editUnitBudget() {
@@ -267,8 +287,14 @@ public class Main {
             System.out.println("Unit does not exists");
             return;
         }
-        unitsBudget.removeIf(unit -> unit.getId() == unitBudget.getId());
-        unitsBudget.add(unitBudget);
+        UnitBudget unitBudgetToEdit = unitsBudget.stream()
+                .filter(unit -> unit.getId() == unitBudget.getId())
+                .findFirst()
+                .orElse(null);
+        if (unitBudgetToEdit == null) return;
+        unitBudgetToEdit.setUnitName(unitBudget.getUnitName());
+        unitBudgetToEdit.setBudget(unitBudget.getBudget());
+        jsonHandler.writeUnitsToFile(unitsBudget);
     }
 
     private static boolean unitBudgetExists(int id) {
@@ -290,7 +316,7 @@ public class Main {
     }
 
     private static void addOrder(int unitId) {
-        Order order = getOrderInput();
+        Order order = getOrderInput(unitId);
         if (order == null) return;
 
         unitsOrders.put(order.getId(), unitId);
@@ -301,6 +327,8 @@ public class Main {
                 return;
             }
         }
+        jsonHandler.writeOrdersToFile(orders);
+        jsonHandler.writeUnitsToFile(unitsBudget);
     }
 
     private static int getOrderIdIfExists() {
@@ -333,6 +361,8 @@ public class Main {
                 return;
             }
         }
+        jsonHandler.writeOrdersToFile(orders);
+        jsonHandler.writeUnitsToFile(unitsBudget);
     }
 
     private static int getItemIdIfExists() {
@@ -365,6 +395,7 @@ public class Main {
                         .findFirst().orElse(null), amount);
             }
         }
+        jsonHandler.writeOrdersToFile(orders);
     }
 
     private static void removeItemFromOrder(int orderId, int itemId) {
@@ -373,6 +404,7 @@ public class Main {
                 order.removeItemOrder(itemId);
             }
         }
+        jsonHandler.writeOrdersToFile(orders);
     }
 
     private static void editItemInOrder(int orderId, int itemId, int amount) {
@@ -381,6 +413,7 @@ public class Main {
                 order.editItemOrder(itemId, amount);
             }
         }
+        jsonHandler.writeOrdersToFile(orders);
     }
 
     private static boolean orderExists(int id) {
@@ -394,7 +427,12 @@ public class Main {
                 .orElse(null);
         if (order == null) return;
         if (!order.getStatus().equals("Pending")) System.out.println("Order is not pending");
-        if (order.isBudgetSufficient(unitBudget.getBudget())) completeOrder(order, unitBudget);
+        if (order.isBudgetSufficient(unitBudget.getBudget())) {
+            completeOrder(order, unitBudget);
+            jsonHandler.writeOrdersToFile(orders);
+            jsonHandler.writeUnitsToFile(unitsBudget);
+            return;
+        }
 
         System.out.println("Blocking items in order:");
         order.showBlockingOrderItems(unitBudget.getBudget());
@@ -525,7 +563,7 @@ public class Main {
         return price;
     }
 
-    private static Order getOrderInput() {
+    private static Order getOrderInput(int unitId) {
         int id = getInputId();
         if (id == -1) {
             sc.nextLine();
@@ -535,6 +573,6 @@ public class Main {
             System.out.println("Order already exists");
             return null;
         }
-        return new Order(id);
+        return new Order(id, unitId);
     }
 }
