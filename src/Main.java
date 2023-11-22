@@ -58,6 +58,7 @@ public class Main {
             }
             if (input <= -1 || choice == null) {
                 System.out.println("Invalid input");
+                sc.nextLine();
                 continue;
             }
 
@@ -109,22 +110,23 @@ public class Main {
     }
 
     private static void showMenu() {
-        System.out.println("1. Add item");
-        System.out.println("2. Remove item");
-        System.out.println("3. Edit item");
-        System.out.println("4. Show items");
-        System.out.println("5. Add unit");
-        System.out.println("6. Remove unit");
-        System.out.println("7. Edit unit");
-        System.out.println("8. Show units");
-        System.out.println("9. Add order");
-        System.out.println("10. Remove order");
-        System.out.println("11. Edit order");
-        System.out.println("12. Show orders");
-        System.out.println("13. Search order");
-        System.out.println("14. Filter orders by status");
-        System.out.println("15. Execute order");
-        System.out.println("16. Exit");
+        System.out.println("""
+                1. Add item
+                2. Remove item
+                3. Edit item
+                4. Show items
+                5. Add unit
+                6. Remove unit
+                7. Edit unit
+                8. Show units
+                9. Add order
+                10. Remove order
+                11. Edit order
+                12. Show orders
+                13. Search order
+                14. Filter orders by status
+                15. Execute order
+                16. Exit""");
     }
 
     private static void editOrderMenuChooser(int orderId) {
@@ -147,6 +149,7 @@ public class Main {
             }
             if (input <= -1 || choice == null) {
                 System.out.println("Invalid input");
+                sc.nextLine();
                 continue;
             }
 
@@ -173,11 +176,12 @@ public class Main {
     }
 
     private static void showEditMenu() {
-        System.out.println("1. Add item to order");
-        System.out.println("2. Remove item from order");
-        System.out.println("3. Edit item in order");
-        System.out.println("4. Show items in order");
-        System.out.println("5. Finish editing order");
+        System.out.println("""
+                1. Add item to order
+                2. Remove item from order
+                3. Edit item in order
+                4. Show items in order
+                5. Finish editing order""");
     }
 
     private static void searchOrder(int orderId) {
@@ -417,7 +421,6 @@ public class Main {
         orderToAddTo.addItemOrder(items.stream().filter(item -> item.getId() == itemId)
                 .findFirst().orElse(null), amount);
         jsonHandler.writeOrdersToFile(orders);
-        jsonHandler.writeUnitsToFile(unitsBudget);
     }
 
     private static void removeItemFromOrder(int orderId, int itemId) {

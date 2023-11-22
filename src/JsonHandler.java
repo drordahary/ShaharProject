@@ -91,8 +91,7 @@ public class JsonHandler {
 
     private void addOrdersToUnit(UnitBudget unitBudget, JSONArray ordersIds,ArrayList<Order> orders) {
         for (int i = 0; i < ordersIds.length(); i++) {
-            JSONObject jsonObject = jsonArray.getJSONObject(i);
-            int id = jsonObject.getInt("id");
+            int id = ordersIds.getInt(i);
             Order order = orders.stream()
                     .filter(it -> it.getId() == id)
                     .findFirst()
