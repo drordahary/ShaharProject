@@ -96,6 +96,7 @@ public class Order {
                 System.out.println("Amount ordering: " + this.items.get(item));
             }
             else if (currentCost > budget) {
+                System.out.println("Budget is insufficient:");
                 System.out.println(item);
                 System.out.println("Amount ordering: " + this.items.get(item));
             }

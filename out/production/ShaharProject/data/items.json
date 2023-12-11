@@ -1,0 +1,14 @@
+[
+  {
+    "amount": 30,
+    "price": 100,
+    "description": "grenades",
+    "id": 1
+  },
+  {
+    "amount": 0,
+    "price": 300,
+    "description": "M16",
+    "id": 2
+  }
+]
